@@ -89,7 +89,7 @@ def upload(filename, file=None):
     cipher = AES.new(key, AES.MODE_GCM, iv, mac_len=16)
     cipher.update(dgst)
 
-    metadata = {"aad": binascii.hexlify(dgst), "id": binascii.hexlify(iv), "filename": filename}
+    metadata = {"aad": binascii.hexlify(dgst).decode(), "id": binascii.hexlify(iv).decode(), "filename": filename}
     mimetype = mimetypes.guess_type(filename, strict=False)[0] or 'application/octet-stream'
     print("Uploading as mimetype", mimetype)
     mpenc = MultipartEncoder(
@@ -103,7 +103,7 @@ def upload(filename, file=None):
     req.raise_for_status()
     res = req.json()
 
-    url = res['url'] + '#' + base64.urlsafe_b64encode(key).rstrip('=')
+    url = res['url'] + '#' + base64.urlsafe_b64encode(key).decode().rstrip('=')
     print("Your download link is", url)
     return url
 
