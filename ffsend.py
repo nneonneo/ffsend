@@ -73,29 +73,18 @@ def upload(filename, file=None):
         file = open(filename, "rb")
     filename = os.path.basename(filename)
 
-    print("Hashing %s..." % filename)
-    ho = sha256()
-    while 1:
-        chunk = file.read(8192)
-        if not chunk:
-            break
-        ho.update(chunk)
-    file.seek(0)
-    dgst = ho.digest()
-
     print("Uploading %s..." % filename)
     key = os.urandom(16)
     iv = os.urandom(12)
     cipher = AES.new(key, AES.MODE_GCM, iv, mac_len=16)
-    cipher.update(dgst)
 
-    metadata = {"aad": binascii.hexlify(dgst).decode(), "id": binascii.hexlify(iv).decode(), "filename": filename}
+    metadata = {"id": binascii.hexlify(iv).decode(), "filename": filename}
     mimetype = mimetypes.guess_type(filename, strict=False)[0] or 'application/octet-stream'
     print("Uploading as mimetype", mimetype)
     mpenc = MultipartEncoder(
         fields={'data': (filename, LazyEncryptedFileWithTag(file, cipher, taglen=16), mimetype)})
     mpmon = MultipartEncoderMonitor(mpenc, callback=upload_progress_callback(mpenc))
-    req = requests.post('https://send.firefox.com/upload', data=mpmon,
+    req = requests.post('https://send.firefox.com/api/upload', data=mpmon,
         headers={
             'X-File-Metadata': json.dumps(metadata),
             'Content-Type': mpmon.content_type})
@@ -116,7 +105,7 @@ def download(url, dest):
     key = base64.urlsafe_b64decode(m.group(2) + '==')
 
     print("Downloading %s..." % url)
-    url = "https://send.firefox.com/assets/download/" + fid
+    url = "https://send.firefox.com/api/download/" + fid
     resp = requests.get(url, stream=True)
     resp.raise_for_status()
     flen = int(resp.headers.get('Content-Length'))
@@ -129,10 +118,8 @@ def download(url, dest):
     else:
         filename = dest
 
-    dgst = binascii.unhexlify(metadata['aad'])
     iv = binascii.unhexlify(metadata['id'])
     cipher = AES.new(key, AES.MODE_GCM, iv)
-    cipher.update(dgst)
 
     ho = sha256()
 
@@ -161,7 +148,6 @@ def download(url, dest):
 
         print()
         cipher.verify(tag)
-        assert ho.digest() == dgst, "Received file failed digest verification!"
 
     print("Done, file verified!")
 
