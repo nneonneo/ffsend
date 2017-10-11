@@ -123,33 +123,38 @@ def download(url, dest):
 
     ho = sha256()
 
-    print("Streaming to %s..." % filename)
+    print("Downloading to %s..." % filename)
 
-    with open(filename, 'wb') as outf:
-        bar = ProgressBar(expected_size=flen, filled_char='=')
+    try:
+        with open(filename + '.tmp', 'wb') as outf:
+            bar = ProgressBar(expected_size=flen, filled_char='=')
 
-        dl = 0
-        tag = b''
-        taglen = 16
-        for data in resp.iter_content(chunk_size=8192):
-            dl += len(data)
-            bar.show(dl)
+            dl = 0
+            tag = b''
+            taglen = 16
+            for data in resp.iter_content(chunk_size=8192):
+                dl += len(data)
+                bar.show(dl)
 
-            if dl > flen - taglen:
-                dend = max(len(data) - (dl - (flen - taglen)), 0)
-                tag += data[dend:]
-                data = data[:dend]
+                if dl > flen - taglen:
+                    dend = max(len(data) - (dl - (flen - taglen)), 0)
+                    tag += data[dend:]
+                    data = data[:dend]
 
-            chunk = cipher.decrypt(data)
-            ho.update(chunk)
-            outf.write(chunk)
-            if len(tag) == taglen:
-                break
+                chunk = cipher.decrypt(data)
+                ho.update(chunk)
+                outf.write(chunk)
+                if len(tag) == taglen:
+                    break
 
-        print()
-        cipher.verify(tag)
-
-    print("Done, file verified!")
+            print()
+            cipher.verify(tag)
+    except Exception as e:
+        print("File download failed:", e)
+        os.unlink(filename + '.tmp')
+    else:
+        os.rename(filename + '.tmp', filename)
+        print("Done, file verified!")
 
 def parse_args(argv):
     import argparse
