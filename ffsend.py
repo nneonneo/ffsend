@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """ Interact with https://send.firefox.com """
 
 from __future__ import print_function
@@ -12,7 +14,10 @@ import re
 from io import BytesIO
 
 from clint.textui.progress import Bar as ProgressBar
-from Crypto.Cipher import AES
+try:
+    from Cryptodome.Cipher import AES
+except:
+    from Crypto.Cipher import AES
 # AES.MODE_GCM requires PyCryptodome
 import requests
 from requests_toolbelt.multipart.encoder import MultipartEncoder, MultipartEncoderMonitor, total_len
