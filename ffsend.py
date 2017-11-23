@@ -23,6 +23,13 @@ import requests
 from requests_toolbelt.multipart.encoder import MultipartEncoder, MultipartEncoderMonitor, total_len
 
 
+def b64encode(s):
+    return base64.urlsafe_b64encode(s).decode().rstrip('=')
+
+def b64decode(s):
+    s += '==='[(len(s) + 3) % 4:]
+    return base64.urlsafe_b64decode(s)
+
 class LazyEncryptedFileWithTag:
     ''' File-like object that encrypts data on the fly, with a GCM tag appended.
 
@@ -97,7 +104,7 @@ def upload(filename, file=None):
     req.raise_for_status()
     res = req.json()
 
-    url = res['url'] + '#' + base64.urlsafe_b64encode(key).decode().rstrip('=')
+    url = res['url'] + '#' + b64encode(secret)
     print("Your download link is", url)
     print("Deletion token is", res['delete'])
     return url
@@ -119,7 +126,7 @@ def download(url, dest):
         raise ValueError("URL format appears to be incorrect")
 
     fid = m.group(1)
-    key = base64.urlsafe_b64decode(m.group(2) + '==')
+    key = b64decode(m.group(2))
 
     print("Downloading %s..." % url)
     url = "https://send.firefox.com/api/download/" + fid
