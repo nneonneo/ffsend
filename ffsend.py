@@ -99,7 +99,19 @@ def upload(filename, file=None):
 
     url = res['url'] + '#' + base64.urlsafe_b64encode(key).decode().rstrip('=')
     print("Your download link is", url)
+    print("Deletion token is", res['delete'])
     return url
+
+def delete(url, token):
+    m = re.match(r'^https://send.firefox.com/download/(\w+)', url)
+    if m:
+        fid = m.group(1)
+    else:
+        fid = url
+
+    req = requests.post('https://send.firefox.com/api/delete/' + fid, json={'delete_token': token})
+    req.raise_for_status()
+    print("File deleted.")
 
 def download(url, dest):
     m = re.match(r'^https://send.firefox.com/download/(\w+)/#([\w_-]+)$', url)
@@ -166,6 +178,7 @@ def parse_args(argv):
 
     parser = argparse.ArgumentParser(description="Download or upload a file to Firefox Send")
     parser.add_argument('target', help="URL to download or file to upload")
+    parser.add_argument('-d', '--delete', help="Deletion token to delete the file. Target can be a URL or a plain file ID.")
     parser.add_argument('-o', '--output', help="Output directory or file; only relevant for download")
 
     return parser.parse_args(argv)
@@ -173,7 +186,9 @@ def parse_args(argv):
 def main(argv):
     args = parse_args(argv)
 
-    if os.path.exists(args.target):
+    if args.delete:
+        delete(args.target, args.delete)
+    elif os.path.exists(args.target):
         upload(args.target)
     elif args.target.startswith('https://'):
         download(args.target, args.output or '.')
