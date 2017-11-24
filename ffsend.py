@@ -16,8 +16,10 @@ from io import BytesIO
 from clint.textui.progress import Bar as ProgressBar
 try:
     from Cryptodome.Cipher import AES
-except:
+    from Cryptodome.Protocol.KDF import PBKDF2
+except ImportError:
     from Crypto.Cipher import AES
+    from Crypto.Protocol.KDF import PBKDF2
 # AES.MODE_GCM requires PyCryptodome
 import requests
 from requests_toolbelt.multipart.encoder import MultipartEncoder, MultipartEncoderMonitor, total_len
@@ -27,6 +29,8 @@ def b64encode(s):
     return base64.urlsafe_b64encode(s).decode().rstrip('=')
 
 def b64decode(s):
+    # accept unicode (py2), str (py2) and str (py3) inputs
+    s = str(s)
     s += '==='[(len(s) + 3) % 4:]
     return base64.urlsafe_b64decode(s)
 
@@ -44,8 +48,11 @@ def hkdf(length, ikm, hashfunc=sha256, salt=b"", info=b""):
 def deriveFileKey(secret):
     return hkdf(16, secret, info=b'encryption')
 
-def deriveAuthKey(secret):
-    return hkdf(64, secret, info=b'authentication')
+def deriveAuthKey(secret, password=None, url=None):
+    if password is None:
+        return hkdf(64, secret, info=b'authentication')
+    return PBKDF2(password.encode('utf8'), url.encode('utf8'), 64, 100,
+        lambda x, y: hmac.new(x, y, sha256).digest())
 
 def deriveMetaKey(secret):
     return hkdf(16, secret, info=b'metadata')
@@ -115,7 +122,7 @@ def upload_progress_callback(encoder):
 
     return callback
 
-def upload(filename, file=None):
+def upload(filename, file=None, password=None):
     if file is None:
         file = open(filename, "rb")
     filename = os.path.basename(filename)
@@ -151,8 +158,17 @@ def upload(filename, file=None):
     resp.raise_for_status()
     nonce = parse_nonce(resp.headers)
     res = resp.json()
-
     url = res['url'] + '#' + b64encode(secret)
+
+    if password is not None:
+        fid, secret = parse_url(url)
+        sig = hmac.new(authKey, nonce, sha256).digest()
+        newAuthKey = deriveAuthKey(secret, password, url)
+        resp = requests.post('https://send.firefox.com/api/password/' + fid,
+            headers={'Authorization': 'send-v1 ' + b64encode(sig)},
+            json={'auth': b64encode(newAuthKey)})
+        resp.raise_for_status()
+
     print("Your download link is", url)
     print("Deletion token is", res['delete'])
     return {'url': url, 'delete': res['delete']}
@@ -161,15 +177,15 @@ def delete(fid, token):
     req = requests.post('https://send.firefox.com/api/delete/' + fid, json={'delete_token': token})
     req.raise_for_status()
 
-def get_metadata(fid, secret):
+def get_metadata(fid, secret, password=None, url=None):
+    authKey = deriveAuthKey(secret, password, url)
+    metaKey = deriveMetaKey(secret)
+    metaCipher = AES.new(metaKey, AES.MODE_GCM, b'\x00' * 12, mac_len=16)
+
     url = "https://send.firefox.com/download/" + fid
     resp = requests.get(url)
     resp.raise_for_status()
     nonce = parse_nonce(resp.headers)
-
-    authKey = deriveAuthKey(secret)
-    metaKey = deriveMetaKey(secret)
-    metaCipher = AES.new(metaKey, AES.MODE_GCM, b'\x00' * 12, mac_len=16)
 
     sig = hmac.new(authKey, nonce, sha256).digest()
     url = "https://send.firefox.com/api/metadata/" + fid
@@ -177,8 +193,7 @@ def get_metadata(fid, secret):
     resp.raise_for_status()
     metadata = resp.json()
 
-    # str() here coerces to str on Py2.7 and unicode on Py3, which is what b64decode takes
-    md = b64decode(str(metadata['metadata']))
+    md = b64decode(metadata['metadata'])
     md, mdtag = md[:-16], md[-16:]
     md = metaCipher.decrypt(md)
     metaCipher.verify(mdtag)
@@ -187,11 +202,11 @@ def get_metadata(fid, secret):
     # return metadata and next nonce
     return metadata, parse_nonce(resp.headers)
 
-def download(fid, secret, dest):
-    metadata, nonce = get_metadata(fid, secret)
+def download(fid, secret, dest, password=None, url=None):
+    metadata, nonce = get_metadata(fid, secret, password, url)
 
     encryptKey = deriveFileKey(secret)
-    authKey = deriveAuthKey(secret)
+    authKey = deriveAuthKey(secret, password, url)
 
     sig = hmac.new(authKey, nonce, sha256).digest()
     url = "https://send.firefox.com/api/download/" + fid
@@ -206,7 +221,7 @@ def download(fid, secret, dest):
     else:
         filename = dest
 
-    iv = b64decode(str(metadata['metadata']['iv']))
+    iv = b64decode(metadata['metadata']['iv'])
     cipher = AES.new(encryptKey, AES.MODE_GCM, iv, mac_len=16)
 
     ho = sha256()
@@ -252,6 +267,7 @@ def parse_args(argv):
     parser.add_argument('-i', '--info', action='store_true', help="Get information on file. Target can be a URL or a plain file ID.")
     parser.add_argument('-d', '--delete', help="Deletion token to delete the file. Target can be a URL or a plain file ID.")
     parser.add_argument('-o', '--output', help="Output directory or file; only relevant for download")
+    parser.add_argument('-p', '--password', help="Password to use for the upload")
 
     return parser.parse_args(argv)
 
@@ -259,14 +275,16 @@ def main(argv):
     args = parse_args(argv)
 
     if os.path.exists(args.target):
+        if args.info or args.delete or args.output:
+            raise ValueError("-i/-d/-o must not be specified with an upload")
         print("Uploading %s..." % args.target)
-        upload(args.target)
+        upload(args.target, password=args.password)
         return
 
     fid, secret = parse_url(args.target)
 
     if args.info:
-        metadata, nonce = get_metadata(fid, secret)
+        metadata, nonce = get_metadata(fid, secret, args.password, args.target)
         print("File ID %s:" % fid)
         print("  Filename:", metadata['metadata']['name'])
         print("  MIME type:", metadata['metadata']['type'])
@@ -282,7 +300,7 @@ def main(argv):
         print("File deleted.")
     elif secret:
         print("Downloading %s..." % args.target)
-        download(fid, secret, args.output or '.')
+        download(fid, secret, args.output or '.', args.password, args.target)
     else:
         # Assume they tried to upload a nonexistent file
         raise OSError("File %s does not exist" % args.target)
