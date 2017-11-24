@@ -81,6 +81,20 @@ class TestFFSend(unittest.TestCase):
         with self.assertRaises(FFSendError):
             ffsend.download(fid, secret, '.')
 
+    def test_bad_delete(self):
+        with open('delete.bin', 'wb') as f:
+            f.write(self.data_tiny)
+
+        url, token = ffsend.upload('delete.bin')
+        self.assertTrue(url is not None)
+        os.unlink('delete.bin')
+
+        fid, secret = ffsend.parse_url(url)
+        ffsend.download(fid, secret, '.')
+
+        with self.assertRaises(FFSendError):
+            ffsend.delete(fid, token)
+
     def test_delete_pw(self):
         with open('delete.bin', 'wb') as f:
             f.write(self.data_tiny)
