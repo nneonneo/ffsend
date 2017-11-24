@@ -122,9 +122,7 @@ def upload_progress_callback(encoder):
 
     return callback
 
-def upload(filename, file=None, password=None):
-    if file is None:
-        file = open(filename, "rb")
+def _upload(filename, file, password=None):
     filename = os.path.basename(filename)
 
     secret = os.urandom(16)
@@ -171,7 +169,14 @@ def upload(filename, file=None, password=None):
 
     print("Your download link is", url)
     print("Deletion token is", res['delete'])
-    return {'url': url, 'delete': res['delete']}
+    return url, res['delete']
+
+def upload(filename, file=None, password=None):
+    if file is None:
+        with open(filename, "rb") as file:
+            return _upload(filename, file, password)
+    else:
+        return _upload(filename, file, password)
 
 def delete(fid, token):
     req = requests.post('https://send.firefox.com/api/delete/' + fid, json={'delete_token': token})
