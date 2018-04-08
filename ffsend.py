@@ -168,8 +168,8 @@ def _upload(filename, file, password=None):
         resp.raise_for_status()
 
     print("Your download link is", url)
-    print("Deletion token is", res['delete'])
-    return url, res['delete']
+    print("Owner token is", res['owner'])
+    return url, res['owner']
 
 def upload(filename, file=None, password=None):
     if file is None:
@@ -179,7 +179,7 @@ def upload(filename, file=None, password=None):
         return _upload(filename, file, password)
 
 def delete(fid, token):
-    req = requests.post('https://send.firefox.com/api/delete/' + fid, json={'delete_token': token})
+    req = requests.post('https://send.firefox.com/api/delete/' + fid, json={'owner_token': token})
     req.raise_for_status()
 
 def get_metadata(fid, secret, password=None, url=None):
@@ -206,6 +206,11 @@ def get_metadata(fid, secret, password=None, url=None):
 
     # return metadata and next nonce
     return metadata, parse_nonce(resp.headers)
+
+def get_owner_info(fid, token):
+    req = requests.post('https://send.firefox.com/api/info/' + fid, json={'owner_token': token})
+    req.raise_for_status()
+    return req.json()
 
 def download(fid, secret, dest, password=None, url=None):
     metadata, nonce = get_metadata(fid, secret, password, url)
@@ -268,20 +273,27 @@ def parse_args(argv):
     import argparse
 
     parser = argparse.ArgumentParser(description="Download or upload a file to Firefox Send")
-    parser.add_argument('target', help="URL to download or file to upload")
-    parser.add_argument('-i', '--info', action='store_true', help="Get information on file. Target can be a URL or a plain file ID.")
-    parser.add_argument('-d', '--delete', help="Deletion token to delete the file. Target can be a URL or a plain file ID.")
-    parser.add_argument('-o', '--output', help="Output directory or file; only relevant for download")
-    parser.add_argument('-p', '--password', help="Password to use for the upload")
 
-    return parser.parse_args(argv)
+    group = parser.add_argument_group('Common options')
+    group.add_argument('target', help="URL to download or file to upload")
+    group.add_argument('-p', '--password', help="Password to use")
+    group.add_argument('-o', '--output', help="Output directory or file; only relevant for download")
+
+    group = parser.add_argument_group('General actions')
+    group.add_argument('-i', '--info', action='store_true', help="Get information on file. Target can be a URL or a plain file ID.")
+
+    group = parser.add_argument_group('Owner actions')
+    group.add_argument('-t', '--token', help="Owner token to manage the file. Target can be a URL or a plain file ID.")
+    group.add_argument('--delete', help="Delete the file. Must specify -t/--token", action='store_true')
+
+    return parser.parse_args(argv), parser
 
 def main(argv):
-    args = parse_args(argv)
+    args, parser = parse_args(argv)
 
     if os.path.exists(args.target):
-        if args.info or args.delete or args.output:
-            raise ValueError("-i/-d/-o must not be specified with an upload")
+        if args.info or args.token or args.output:
+            parser.error("-i/-t/-o must not be specified with an upload")
         print("Uploading %s..." % args.target)
         upload(args.target, password=args.password)
         return
@@ -294,14 +306,20 @@ def main(argv):
         print("  Filename:", metadata['metadata']['name'])
         print("  MIME type:", metadata['metadata']['type'])
         print("  Size:", metadata['size'])
+        print("  Final download:", "yes" if metadata['finalDownload'] else "no")
         ttl = metadata['ttl']
         h, ttl = divmod(ttl, 3600000)
         m, ttl = divmod(ttl, 60000)
         s, ttl = divmod(ttl, 1000)
         print("  Expires in: %dh%dm%ds" % (h, m, s))
+        if args.token:
+            info = get_owner_info(fid, args.token)
+            print("  Download limit:", info['dlimit'])
+            print("  Downloads so far:", info['dtotal'])
     elif args.delete:
-        fid, secret = parse_url(args.target)
-        delete(fid, args.delete)
+        if not args.token:
+            parser.error("--delete requires -t/--token")
+        delete(fid, args.token)
         print("File deleted.")
     elif secret:
         print("Downloading %s..." % args.target)
