@@ -182,6 +182,11 @@ def delete(fid, token):
     req = requests.post('https://send.firefox.com/api/delete/' + fid, json={'owner_token': token})
     req.raise_for_status()
 
+def set_params(fid, token, **params):
+    params['owner_token'] = token
+    req = requests.post('https://send.firefox.com/api/params/' + fid, json=params)
+    req.raise_for_status()
+
 def get_metadata(fid, secret, password=None, url=None):
     authKey = deriveAuthKey(secret, password, url)
     metaKey = deriveMetaKey(secret)
@@ -285,6 +290,8 @@ def parse_args(argv):
     group = parser.add_argument_group('Owner actions')
     group.add_argument('-t', '--token', help="Owner token to manage the file. Target can be a URL or a plain file ID.")
     group.add_argument('--delete', help="Delete the file. Must specify -t/--token", action='store_true')
+    group.add_argument('--set-ttl', help="Set the time to live (in seconds). Must specify -t/--token", type=int)
+    group.add_argument('--set-dlimit', help="Set the download limit. Must specify -t/--token", type=int)
 
     return parser.parse_args(argv), parser
 
@@ -316,12 +323,28 @@ def main(argv):
             info = get_owner_info(fid, args.token)
             print("  Download limit:", info['dlimit'])
             print("  Downloads so far:", info['dtotal'])
+        return
     elif args.delete:
         if not args.token:
             parser.error("--delete requires -t/--token")
+        if args.set_ttl is not None or args.set_dlimit is not None:
+            parser.error("--delete can't be set with set_ttl or set_dlimit")
         delete(fid, args.token)
         print("File deleted.")
-    elif secret:
+        return
+
+    params = {}
+    if args.set_ttl is not None:
+        params['ttl'] = args.set_ttl * 1000
+    if args.set_dlimit is not None:
+        params['dlimit'] = args.set_dlimit
+    if params:
+        if not args.token:
+            parser.error("setting parameters requires -t/--token")
+        set_params(fid, args.token, **params)
+        return
+
+    if secret:
         print("Downloading %s..." % args.target)
         download(fid, secret, args.output or '.', args.password, args.target)
     else:
