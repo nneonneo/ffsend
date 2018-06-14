@@ -157,18 +157,19 @@ def _upload(filename, file, password=None):
     nonce = parse_nonce(resp.headers)
     res = resp.json()
     url = res['url'] + '#' + b64encode(secret)
+    ownerToken = res['owner']
 
     if password is not None:
         fid, secret = parse_url(url)
         sig = hmac.new(authKey, nonce, sha256).digest()
         newAuthKey = deriveAuthKey(secret, password, url)
         resp = requests.post('https://send.firefox.com/api/password/' + fid,
-            headers={'Authorization': 'send-v1 ' + b64encode(sig)},
-            json={'auth': b64encode(newAuthKey)})
+            headers={'Content-Type': 'application/json'},
+            json={'auth': b64encode(newAuthKey), 'owner_token': ownerToken})
         resp.raise_for_status()
 
     print("Your download link is", url)
-    print("Owner token is", res['owner'])
+    print("Owner token is", ownerToken)
     return url, res['owner']
 
 def upload(filename, file=None, password=None):
