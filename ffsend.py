@@ -161,7 +161,6 @@ def _upload(filename, file, password=None):
 
     if password is not None:
         fid, secret = parse_url(url)
-        sig = hmac.new(authKey, nonce, sha256).digest()
         newAuthKey = deriveAuthKey(secret, password, url)
         resp = requests.post('https://send.firefox.com/api/password/' + fid,
             headers={'Content-Type': 'application/json'},
