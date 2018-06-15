@@ -14,13 +14,13 @@ import hmac
 from io import BytesIO
 
 from clint.textui.progress import Bar as ProgressBar
+# AES.MODE_GCM requires PyCryptodome
 try:
     from Cryptodome.Cipher import AES
     from Cryptodome.Protocol.KDF import PBKDF2
 except ImportError:
     from Crypto.Cipher import AES
     from Crypto.Protocol.KDF import PBKDF2
-# AES.MODE_GCM requires PyCryptodome
 import requests
 from requests_toolbelt.multipart.encoder import MultipartEncoder, MultipartEncoderMonitor, total_len
 
@@ -52,7 +52,7 @@ def deriveAuthKey(secret, password=None, url=None):
     if password is None:
         return hkdf(64, secret, info=b'authentication')
     return PBKDF2(password.encode('utf8'), url.encode('utf8'), 64, 100,
-        lambda x, y: hmac.new(x, y, sha256).digest())
+                  lambda x, y: hmac.new(x, y, sha256).digest())
 
 def deriveMetaKey(secret):
     return hkdf(16, secret, info=b'metadata')
@@ -148,13 +148,12 @@ def _upload(filename, file, password=None):
                          'application/octet-stream')})
     mpmon = MultipartEncoderMonitor(mpenc, callback=upload_progress_callback(mpenc))
     resp = requests.post('https://send.firefox.com/api/upload', data=mpmon,
-        headers={
-            'X-File-Metadata': b64encode(metadata),
-            'Authorization': 'send-v1 ' + b64encode(authKey),
-            'Content-Type': mpmon.content_type})
+                         headers={
+                             'X-File-Metadata': b64encode(metadata),
+                             'Authorization': 'send-v1 ' + b64encode(authKey),
+                             'Content-Type': mpmon.content_type})
     print()
     resp.raise_for_status()
-    nonce = parse_nonce(resp.headers)
     res = resp.json()
     url = res['url'] + '#' + b64encode(secret)
     ownerToken = res['owner']
@@ -163,8 +162,8 @@ def _upload(filename, file, password=None):
         fid, secret = parse_url(url)
         newAuthKey = deriveAuthKey(secret, password, url)
         resp = requests.post('https://send.firefox.com/api/password/' + fid,
-            headers={'Content-Type': 'application/json'},
-            json={'auth': b64encode(newAuthKey), 'owner_token': ownerToken})
+                             headers={'Content-Type': 'application/json'},
+                             json={'auth': b64encode(newAuthKey), 'owner_token': ownerToken})
         resp.raise_for_status()
 
     print("Your download link is", url)
@@ -285,10 +284,12 @@ def parse_args(argv):
     group.add_argument('-o', '--output', help="Output directory or file; only relevant for download")
 
     group = parser.add_argument_group('General actions')
-    group.add_argument('-i', '--info', action='store_true', help="Get information on file. Target can be a URL or a plain file ID.")
+    group.add_argument('-i', '--info', action='store_true',
+                       help="Get information on file. Target can be a URL or a plain file ID.")
 
     group = parser.add_argument_group('Owner actions')
-    group.add_argument('-t', '--token', help="Owner token to manage the file. Target can be a URL or a plain file ID.")
+    group.add_argument('-t', '--token',
+                       help="Owner token to manage the file. Target can be a URL or a plain file ID.")
     group.add_argument('--delete', help="Delete the file. Must specify -t/--token", action='store_true')
     group.add_argument('--set-ttl', help="Set the time to live (in seconds). Must specify -t/--token", type=int)
     group.add_argument('--set-dlimit', help="Set the download limit. Must specify -t/--token", type=int)
@@ -350,6 +351,7 @@ def main(argv):
     else:
         # Assume they tried to upload a nonexistent file
         raise OSError("File %s does not exist" % args.target)
+
 
 if __name__ == '__main__':
     import sys

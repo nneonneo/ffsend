@@ -41,6 +41,7 @@ class TestFFSend(unittest.TestCase):
         with open(filename, 'rb') as f:
             self.assertEqual(data, f.read())
 
+    # Basic tests
     def test_empty(self):
         self.do_test('empty.bin', b'')
 
@@ -51,9 +52,9 @@ class TestFFSend(unittest.TestCase):
         self.do_test('small.bin', os.urandom(random.getrandbits(16)))
 
     def test_big(self):
-        self.do_test('big.bin', os.urandom((1<<20) + random.getrandbits(20)))
+        self.do_test('big.bin', os.urandom((1 << 20) + random.getrandbits(20)))
 
-
+    # Basic tests with passwords
     def test_empty_pw(self):
         self.do_test('empty.bin', b'', self.password)
 
@@ -64,9 +65,9 @@ class TestFFSend(unittest.TestCase):
         self.do_test('small.bin', os.urandom(random.getrandbits(16)), self.password)
 
     def test_big_pw(self):
-        self.do_test('big.bin', os.urandom((1<<20) + random.getrandbits(20)), self.password)
+        self.do_test('big.bin', os.urandom((1 << 20) + random.getrandbits(20)), self.password)
 
-
+    # Test owner functionality
     def test_delete(self):
         with open('delete.bin', 'wb') as f:
             f.write(self.data_tiny)
@@ -126,6 +127,7 @@ class TestFFSend(unittest.TestCase):
 
         with self.assertRaises(FFSendError):
             ffsend.download(fid, secret, '.', 'password', url)
+
 
 if __name__ == '__main__':
     unittest.main()
