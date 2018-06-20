@@ -299,16 +299,34 @@ def parse_args(argv):
 def main(argv):
     args, parser = parse_args(argv)
 
+    def do_set_params():
+        params = {}
+        if args.set_ttl is not None:
+            params['ttl'] = args.set_ttl * 1000
+        if args.set_dlimit is not None:
+            params['dlimit'] = args.set_dlimit
+        if params:
+            if not args.token:
+                parser.error("setting parameters requires -t/--token")
+            set_params(fid, args.token, **params)
+            print("File parameters %s set" % str(params))
+            return True
+        return False
+
     if os.path.exists(args.target):
         if args.info or args.token or args.output:
             parser.error("-i/-t/-o must not be specified with an upload")
         print("Uploading %s..." % args.target)
-        upload(args.target, password=args.password)
+        url, args.token = upload(args.target, password=args.password)
+        fid, secret = parse_url(url)
+        do_set_params()
         return
 
     fid, secret = parse_url(args.target)
 
     if args.info:
+        if args.delete:
+            parser.error("--info and --delete are mutually exclusive")
         metadata, nonce = get_metadata(fid, secret, args.password, args.target)
         print("File ID %s:" % fid)
         print("  Filename:", metadata['metadata']['name'])
@@ -324,6 +342,7 @@ def main(argv):
             info = get_owner_info(fid, args.token)
             print("  Download limit:", info['dlimit'])
             print("  Downloads so far:", info['dtotal'])
+        do_set_params()
         return
     elif args.delete:
         if not args.token:
@@ -334,15 +353,7 @@ def main(argv):
         print("File deleted.")
         return
 
-    params = {}
-    if args.set_ttl is not None:
-        params['ttl'] = args.set_ttl * 1000
-    if args.set_dlimit is not None:
-        params['dlimit'] = args.set_dlimit
-    if params:
-        if not args.token:
-            parser.error("setting parameters requires -t/--token")
-        set_params(fid, args.token, **params)
+    if do_set_params():
         return
 
     if secret:

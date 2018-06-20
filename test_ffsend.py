@@ -128,6 +128,27 @@ class TestFFSend(unittest.TestCase):
         with self.assertRaises(FFSendError):
             ffsend.download(fid, secret, '.', 'password', url)
 
+    def test_set_dlimit(self):
+        filename = 'dlimit.bin'
+        with open(filename, 'wb') as f:
+            f.write(self.data_tiny)
+
+        url, token = ffsend.upload(filename)
+        self.assertTrue(url is not None)
+        os.unlink(filename)
+
+        fid, secret = ffsend.parse_url(url)
+
+        ffsend.set_params(fid, token, dlimit=2)
+
+        for i in range(2):
+            ffsend.download(fid, secret, '.')
+            with open(filename, 'rb') as f:
+                self.assertEqual(self.data_tiny, f.read())
+            os.unlink(filename)
+
+        with self.assertRaises(FFSendError):
+            ffsend.download(fid, secret, '.')
 
 if __name__ == '__main__':
     unittest.main()
