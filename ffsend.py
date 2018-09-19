@@ -59,15 +59,16 @@ def deriveMetaKey(secret):
 
 def parse_url(url):
     secret = None
-    m = re.match(r'^https://send.firefox.com/download/(\w+)/?#?([\w_-]+)?$', url)
+    m = re.match(r'^https://(.*)/download/(\w+)/?#?([\w_-]+)?$', url)
     if m:
-        fid = m.group(1)
-        if m.group(2):
-            secret = b64decode(m.group(2))
+        service = 'https://' + m.group(1) + '/'
+        fid = m.group(2)
+        if m.group(3):
+            secret = b64decode(m.group(3))
     else:
         fid = url
 
-    return fid, secret
+    return service, fid, secret
 
 def parse_nonce(headers):
     return base64.b64decode(headers['WWW-Authenticate'].split()[1])
@@ -122,7 +123,7 @@ def upload_progress_callback(encoder):
 
     return callback
 
-def _upload(filename, file, password=None):
+def _upload(service, filename, file, password=None):
     filename = os.path.basename(filename)
 
     secret = os.urandom(16)
@@ -147,7 +148,7 @@ def _upload(filename, file, password=None):
                          LazyEncryptedFileWithTag(file, fileCipher, taglen=16),
                          'application/octet-stream')})
     mpmon = MultipartEncoderMonitor(mpenc, callback=upload_progress_callback(mpenc))
-    resp = requests.post('https://send.firefox.com/api/upload', data=mpmon,
+    resp = requests.post(service + 'api/upload', data=mpmon,
                          headers={
                              'X-File-Metadata': b64encode(metadata),
                              'Authorization': 'send-v1 ' + b64encode(authKey),
@@ -159,9 +160,9 @@ def _upload(filename, file, password=None):
     ownerToken = res['owner']
 
     if password is not None:
-        fid, secret = parse_url(url)
+        service, fid, secret = parse_url(url)
         newAuthKey = deriveAuthKey(secret, password, url)
-        resp = requests.post('https://send.firefox.com/api/password/' + fid,
+        resp = requests.post(service + 'api/password/' + fid,
                              headers={'Content-Type': 'application/json'},
                              json={'auth': b64encode(newAuthKey), 'owner_token': ownerToken})
         resp.raise_for_status()
@@ -170,34 +171,34 @@ def _upload(filename, file, password=None):
     print("Owner token is", ownerToken)
     return url, res['owner']
 
-def upload(filename, file=None, password=None):
+def upload(service, filename, file=None, password=None):
     if file is None:
         with open(filename, "rb") as file:
-            return _upload(filename, file, password)
+            return _upload(service, filename, file, password)
     else:
-        return _upload(filename, file, password)
+        return _upload(service, filename, file, password)
 
-def delete(fid, token):
-    req = requests.post('https://send.firefox.com/api/delete/' + fid, json={'owner_token': token})
+def delete(service, fid, token):
+    req = requests.post(service + 'api/delete/' + fid, json={'owner_token': token})
     req.raise_for_status()
 
-def set_params(fid, token, **params):
+def set_params(service, fid, token, **params):
     params['owner_token'] = token
-    req = requests.post('https://send.firefox.com/api/params/' + fid, json=params)
+    req = requests.post(service + 'api/params/' + fid, json=params)
     req.raise_for_status()
 
-def get_metadata(fid, secret, password=None, url=None):
+def get_metadata(service, fid, secret, password=None, url=None):
     authKey = deriveAuthKey(secret, password, url)
     metaKey = deriveMetaKey(secret)
     metaCipher = AES.new(metaKey, AES.MODE_GCM, b'\x00' * 12, mac_len=16)
 
-    url = "https://send.firefox.com/download/" + fid
+    url = service + "download/" + fid
     resp = requests.get(url)
     resp.raise_for_status()
     nonce = parse_nonce(resp.headers)
 
     sig = hmac.new(authKey, nonce, sha256).digest()
-    url = "https://send.firefox.com/api/metadata/" + fid
+    url = service + "api/metadata/" + fid
     resp = requests.get(url, headers={'Authorization': 'send-v1 ' + b64encode(sig)})
     resp.raise_for_status()
     metadata = resp.json()
@@ -211,19 +212,19 @@ def get_metadata(fid, secret, password=None, url=None):
     # return metadata and next nonce
     return metadata, parse_nonce(resp.headers)
 
-def get_owner_info(fid, token):
-    req = requests.post('https://send.firefox.com/api/info/' + fid, json={'owner_token': token})
+def get_owner_info(service, fid, token):
+    req = requests.post(service + 'api/info/' + fid, json={'owner_token': token})
     req.raise_for_status()
     return req.json()
 
-def download(fid, secret, dest, password=None, url=None):
-    metadata, nonce = get_metadata(fid, secret, password, url)
+def download(service, fid, secret, dest, password=None, url=None):
+    metadata, nonce = get_metadata(service, fid, secret, password, url)
 
     encryptKey = deriveFileKey(secret)
     authKey = deriveAuthKey(secret, password, url)
 
     sig = hmac.new(authKey, nonce, sha256).digest()
-    url = "https://send.firefox.com/api/download/" + fid
+    url = service + "api/download/" + fid
     resp = requests.get(url, headers={'Authorization': 'send-v1 ' + b64encode(sig)}, stream=True)
     resp.raise_for_status()
 
@@ -281,6 +282,7 @@ def parse_args(argv):
     group = parser.add_argument_group('Common options')
     group.add_argument('target', help="URL to download or file to upload")
     group.add_argument('-p', '--password', help="Password to use")
+    group.add_argument('-s', '--service', help="Send Service to use, default at https://send.firefox.com/", default="https://send.firefox.com/")
     group.add_argument('-o', '--output', help="Output directory or file; only relevant for download")
 
     group = parser.add_argument_group('General actions')
@@ -316,18 +318,21 @@ def main(argv):
     if os.path.exists(args.target):
         if args.info or args.token or args.output:
             parser.error("-i/-t/-o must not be specified with an upload")
-        print("Uploading %s..." % args.target)
-        url, args.token = upload(args.target, password=args.password)
-        fid, secret = parse_url(url)
+        if re.match(r'.*/$', args.service) == None:
+            args.service += '/'
+        print("Uploading %s to %s ..." % (args.target, args.service))
+        url, args.token = upload(args.service, args.target, password=args.password)
+        service, fid, secret = parse_url(url)
         do_set_params()
         return
 
-    fid, secret = parse_url(args.target)
+    service, fid, secret = parse_url(args.target)
 
     if args.info:
         if args.delete:
             parser.error("--info and --delete are mutually exclusive")
-        metadata, nonce = get_metadata(fid, secret, args.password, args.target)
+        metadata, nonce = get_metadata(service, fid, secret, args.password, args.target)
+        print("Service %s:" % service)
         print("File ID %s:" % fid)
         print("  Filename:", metadata['metadata']['name'])
         print("  MIME type:", metadata['metadata']['type'])
@@ -349,7 +354,7 @@ def main(argv):
             parser.error("--delete requires -t/--token")
         if args.set_ttl is not None or args.set_dlimit is not None:
             parser.error("--delete can't be set with set_ttl or set_dlimit")
-        delete(fid, args.token)
+        delete(service, fid, args.token)
         print("File deleted.")
         return
 
@@ -358,7 +363,7 @@ def main(argv):
 
     if secret:
         print("Downloading %s..." % args.target)
-        download(fid, secret, args.output or '.', args.password, args.target)
+        download(service, fid, secret, args.output or '.', args.password, args.target)
     else:
         # Assume they tried to upload a nonexistent file
         raise OSError("File %s does not exist" % args.target)
