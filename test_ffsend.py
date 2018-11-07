@@ -156,5 +156,45 @@ class TestFFSend(unittest.TestCase):
         with self.assertRaises(FFSendError):
             ffsend.download(service, fid, secret, '.')
 
+    def test_main(self):
+        ''' redirect stdout to a pipe in order to parse
+        what comes from stdout to get url and token. '''
+        stdout = sys.stdout
+        ppr, ppw = os.pipe()
+        sys.stdout = os.fdopen(ppw, 'w')
+        console = os.fdopen(ppr, 'r')
+        
+        filename = 'tiny.bin'
+        with open(filename, 'wb') as f:
+            f.write(self.data_tiny)
+
+        ffsend.main(['-s', self.service, '--set-ttl', "3600",
+                     '--set-dlimit', '2', filename])
+
+        sys.stdout.close()
+
+        ctxt = console.read()
+        url = re.search('Your download link is (.*)', ctxt).group(1)
+        token = re.search('Owner token is (.*)', ctxt).group(1)
+
+        # restore stdout
+        console.close()
+        sys.stdout = stdout
+        print(ctxt)
+        self.assertTrue(url is not None)
+        self.assertTrue(token is not None)
+
+        service, fid, secret = ffsend.parse_url(url)
+
+        for i in range(2):
+            ffsend.download(service, fid, secret, '.')
+            with open(filename, 'rb') as f:
+                self.assertEqual(self.data_tiny, f.read())
+            os.unlink(filename)
+
+        with self.assertRaises(FFSendError):
+            ffsend.download(service, fid, secret, '.')
+        
+
 if __name__ == '__main__':
     unittest.main()
