@@ -310,7 +310,7 @@ def main(argv):
         if params:
             if not args.token:
                 parser.error("setting parameters requires -t/--token")
-            set_params(fid, args.token, **params)
+            set_params(service, fid, args.token, **params)
             print("File parameters %s set" % str(params))
             return True
         return False
