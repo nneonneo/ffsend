@@ -39,10 +39,9 @@ class TestFFSend(unittest.TestCase):
         self.assertTrue(service is not None)
         self.assertTrue(secret is not None)
 
-        metadata, nonce = ffsend.get_metadata(service, fid, secret, password, url)
+        metadata = ffsend.get_metadata(service, fid, secret, password, url)
         self.assertEqual(metadata['metadata']['name'], filename)
-        # + 16 for the GCM tag
-        self.assertEqual(metadata['size'], len(data) + 16)
+        self.assertEqual(metadata['metadata']['size'], len(data))
 
         ffsend.download(service, fid, secret, '.', password, url)
         with open(filename, 'rb') as f:
@@ -135,6 +134,7 @@ class TestFFSend(unittest.TestCase):
         with self.assertRaises(FFSendError):
             ffsend.download(service, fid, secret, '.', 'password', url)
 
+    @unittest.skip("Send limits anonymous users to only 1 download now")
     def test_set_dlimit(self):
         filename = 'dlimit.bin'
         with open(filename, 'wb') as f:
@@ -169,8 +169,7 @@ class TestFFSend(unittest.TestCase):
         with open(filename, 'wb') as f:
             f.write(self.data_tiny)
 
-        ffsend.main(['-s', self.service, '--set-ttl', "3600",
-                     '--set-dlimit', '2', filename])
+        ffsend.main(['-s', self.service, filename])
 
         sys.stdout.close()
 
@@ -187,11 +186,8 @@ class TestFFSend(unittest.TestCase):
 
         service, fid, secret = ffsend.parse_url(url)
 
-        for i in range(2):
-            ffsend.download(service, fid, secret, '.')
-            with open(filename, 'rb') as f:
-                self.assertEqual(self.data_tiny, f.read())
-            os.unlink(filename)
+        ffsend.main(['-i', '-t', token, url])
+        ffsend.main(['--delete', '-t', token, url])
 
         with self.assertRaises(FFSendError):
             ffsend.download(service, fid, secret, '.')
