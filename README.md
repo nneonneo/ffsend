@@ -4,12 +4,16 @@ Python client to https://send.firefox.com. Encrypts and decrypts on the fly to r
 
 Prerequisites:
 
-    pip install clint pycryptodome requests
+```bash
+pip install clint pycryptodome requests
+```
 
 Usage is really simple:
 
-    python ffsend.py 'https://send.firefox.com/download/abcdef0123/#keykeykey' # download a file to the current directory
-    python ffsend.py path/to/file # upload a file to Firefox Send
+```bash
+python ffsend.py 'https://send.firefox.com/download/abcdef0123/#keykeykey' # download a file to the current directory
+python ffsend.py path/to/file # upload a file to Firefox Send
+```
 
 ## Advanced usage
 
@@ -19,19 +23,27 @@ Several commands take a `-t`/`--token` parameter, which is the "Owner token" dis
 
 To get basic information:
 
-    python ffsend.py -i 'https://send.firefox.com/download/abcdef0123'
+```bash
+python ffsend.py -i 'https://send.firefox.com/download/abcdef0123'
+```
 
 To get more information (including number of times downloaded):
 
-    python ffsend.py -i -t TOKEN 'https://send.firefox.com/download/abcdef0123'
+```bash
+python ffsend.py -i -t TOKEN 'https://send.firefox.com/download/abcdef0123'
+```
 
 ### Deleting a file
 
-    python ffsend.py --delete -t TOKEN 'https://send.firefox.com/download/abcdef0123'
+```bash
+python ffsend.py --delete -t TOKEN 'https://send.firefox.com/download/abcdef0123'
+```
 
 ### Updating file settings
 
-    python ffsend.py --set-dlimit N -t TOKEN 'https://send.firefox.com/download/abcdef0123'
+```bash
+python ffsend.py --set-dlimit N -t TOKEN 'https://send.firefox.com/download/abcdef0123'
+```
 
 ## License
 
