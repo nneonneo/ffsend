@@ -406,6 +406,10 @@ class FFSend(object):
         resp = self.api.post_params(fid, owner_token, new_params)
         resp.raise_for_status()
 
+def single_file_metadata(filename, filesize, mimetype='application/octet-stream'):
+    return {"name": filename, "size": filesize, "type": mimetype, "manifest": {"files": [
+        {"name": filename, "size": filesize, "type": mimetype}]}}
+
 ### High-level CLI
 def parse_url(url):
     secret = None
@@ -431,8 +435,7 @@ def _upload(service, filename, file, password=None):
     filesize = file.tell()
     file.seek(0)
 
-    metadata = {"name": filename, "size": filesize, "type": mimetype, "manifest": {"files": [
-        {"name": filename, "size": filesize, "type": mimetype}]}}
+    metadata = single_file_metadata(filename, filesize, mimetype=mimetype)
 
     bar = ProgressBar(expected_size=filesize or 1, filled_char='=')
 
