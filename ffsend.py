@@ -318,7 +318,7 @@ def main(argv):
     if os.path.exists(args.target):
         if args.info or args.token or args.output:
             parser.error("-i/-t/-o must not be specified with an upload")
-        if re.match(r'.*/$', args.service) == None:
+        if re.match(r'.*/$', args.service) is None:
             args.service += '/'
         print("Uploading %s to %s ..." % (args.target, args.service))
         url, args.token = upload(args.service, args.target, password=args.password)

@@ -15,10 +15,11 @@ class TestFFSend(unittest.TestCase):
     def setUp(self):
         self.tmpdir = tempfile.mkdtemp()
         self.data_tiny = os.urandom(random.getrandbits(4))
-        self.password = ''.join(random.choice('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') for _ in range(random.randint(1, 16)))
+        self.password = ''.join(random.choice('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
+                                for _ in range(random.randint(1, 16)))
         self.origdir = os.getcwd()
         self.service = os.environ['SERVICE'] if ('SERVICE' in os.environ) else 'https://send.firefox.com/'
-        if re.match(r'.*/$', self.service) == None:
+        if re.match(r'.*/$', self.service) is None:
             self.service += '/'
         os.chdir(self.tmpdir)
 
@@ -163,7 +164,7 @@ class TestFFSend(unittest.TestCase):
         ppr, ppw = os.pipe()
         sys.stdout = os.fdopen(ppw, 'w')
         console = os.fdopen(ppr, 'r')
-        
+
         filename = 'tiny.bin'
         with open(filename, 'wb') as f:
             f.write(self.data_tiny)
@@ -194,7 +195,7 @@ class TestFFSend(unittest.TestCase):
 
         with self.assertRaises(FFSendError):
             ffsend.download(service, fid, secret, '.')
-        
+
 
 if __name__ == '__main__':
     unittest.main()
