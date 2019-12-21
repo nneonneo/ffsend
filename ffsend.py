@@ -416,7 +416,7 @@ def parse_url(url):
         if m.group(3):
             secret = url_b64decode(m.group(3))
     else:
-        fid = url
+        raise Exception("Failed to parse URL %s" % url)
 
     return service, fid, secret
 
