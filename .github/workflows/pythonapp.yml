@@ -33,6 +33,7 @@ jobs:
         git config --global user.name "KTibow"
         git config --local user.email "KTibow@users.noreply.github.com"
         git stash
+        rm index.html
         git checkout gh-pages || true
         git stash pop
         git add -A
