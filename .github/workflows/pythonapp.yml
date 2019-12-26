@@ -33,9 +33,12 @@ jobs:
         git config --global user.name "KTibow"
         git config --local user.email "KTibow@users.noreply.github.com"
         git stash
+        git stash list
+        ls
         rm index.html
+        git stash list
         git checkout gh-pages || true
-        git stash pop
+        git stash apply
         git add -A
         git commit -m "Add pytest report" -a || true
         git pull
