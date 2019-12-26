@@ -35,6 +35,7 @@ jobs:
         git add index.html
         git stash
         git checkout gh-pages || true
+        git pull
         git stash pop
         git add -A
         git commit -m "Add pytest report" -a || true
