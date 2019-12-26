@@ -39,8 +39,3 @@ jobs:
     - uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-    - name: Force build
-      env:
-        key: ${{ secrets.GITHUB_TOKEN }}  
-      run: |
-        curl -u KTibow:$key -X POST https://api.github.com/repos/KTibow/ffsend/pages/builds -H "Accept: application/vnd.github.mister-fantastic-preview+json"
