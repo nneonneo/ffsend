@@ -27,12 +27,12 @@ jobs:
     - name: Test with pytest
       run: |
         pip install pytest
-        pytest --html=report.html
+        pytest --html=index.html
     - name: Upload report
       run: |
         git config --global user.name "KTibow"
         git config --local user.email "KTibow@users.noreply.github.com"
-        git checkout master || true
+        git checkout gh-pages || true
         git add -A
         git commit -m "Add pytest report" -a || true
         git pull
