@@ -27,4 +27,13 @@ jobs:
     - name: Test with pytest
       run: |
         pip install pytest
-        pytest
+        pytest --html=report.html
+    - name: Upload report
+      run: |
+        git checkout master || true
+        git add -A
+        git commit -m "Add pytest report" -a || true
+        git pull
+    - uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
