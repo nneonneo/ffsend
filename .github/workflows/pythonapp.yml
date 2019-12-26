@@ -27,7 +27,9 @@ jobs:
     - name: Test with pytest
       run: |
         pip install pytest
-        pytest --html=report.html
+        rm -r report || true
+        mkdir report
+        pytest --html=report/index.html
     - name: Upload report
       run: |
         git config --global user.name "KTibow"
