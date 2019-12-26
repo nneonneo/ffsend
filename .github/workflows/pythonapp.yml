@@ -30,6 +30,8 @@ jobs:
         pytest --html=report.html
     - name: Upload report
       run: |
+        git config --global user.name "KTibow"
+        git config --local user.email "KTibow@users.noreply.github.com"
         git checkout master || true
         git add -A
         git commit -m "Add pytest report" -a || true
