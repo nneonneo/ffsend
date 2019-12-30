@@ -36,4 +36,6 @@ jobs:
       run: |
         git checkout gh-pages
         git config --global user.name "The Tester"
+        git add report/
+        git add report/index.html
         git commit -m "Add report"
