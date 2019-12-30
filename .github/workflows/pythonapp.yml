@@ -34,4 +34,6 @@ jobs:
         pytest --html=report/index.html
     - name: Upload report
       run: |
+        git stash
         git checkout gh-pages
+        git stash pop
