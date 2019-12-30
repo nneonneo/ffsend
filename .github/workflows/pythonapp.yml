@@ -33,14 +33,12 @@ jobs:
         mkdir report
         pytest --html=report/index.html
     - name: Upload report
+      env:
+        GITHUB_PAT: ${{ secrets.GITHUB_PAT }}
       run: |
         git checkout gh-pages
         git config --global user.name "The Tester"
         git add report/
         git commit -m "Add report"
-    - name: GitHub Pages Deploy
-      uses: maxheld83/ghpages@v0.2.1
-      env: 
-        BUILD_DIR: "report/"
-      with:
-        secrets: "GH_PAT"
+        pat=$(printenv GITHUB_PAT)
+        git push https://${pat}@github.com/KTibow/ffsend.git
