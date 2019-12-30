@@ -1,6 +1,9 @@
 name: Run pytest
 
-on: [push]
+on:
+  push:
+    branches:
+      - master
 
 jobs:
   build:
@@ -28,11 +31,7 @@ jobs:
       run: |
         pip install pytest
         mkdir report
-        pytest --html=report/report.html
-    - name: Upload artifact
-      uses: actions/upload-artifact@v1.0.0
-      with:
-        # Artifact name
-        name: Report
-        # Directory containing files to upload
-        path: report
+        pytest --html=report/index.html
+    - name: Upload report
+      run: |
+        git checkout gh-pages
