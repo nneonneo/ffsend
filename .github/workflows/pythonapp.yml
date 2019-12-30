@@ -35,4 +35,5 @@ jobs:
     - name: Upload report
       run: |
         git checkout gh-pages
+        git config --global user.name "The Tester"
         git commit -m "Add report"
