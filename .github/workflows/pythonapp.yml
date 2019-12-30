@@ -37,5 +37,8 @@ jobs:
         git checkout gh-pages
         git config --global user.name "The Tester"
         git add report/
-        git add report/index.html
         git commit -m "Add report"
+    - name: GitHub Pages Deploy
+      uses: maxheld83/ghpages@v0.2.1
+      env: 
+        BUILD_DIR: "report/"
