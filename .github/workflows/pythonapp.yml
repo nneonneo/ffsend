@@ -42,3 +42,5 @@ jobs:
       uses: maxheld83/ghpages@v0.2.1
       env: 
         BUILD_DIR: "report/"
+      with:
+        secrets: "GH_PAT"
