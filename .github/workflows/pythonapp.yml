@@ -31,11 +31,12 @@ jobs:
       run: |
         pip install pytest
         mkdir report
-        pytest --html=report/index.html
+        pytest --html=../report/index.html
     - name: Upload report
       run: |
         git checkout gh-pages
         git config --global user.name "The Tester"
+        mv ../report report
         git add report/
         git commit -m "Add report"
     - uses: ad-m/github-push-action@master
