@@ -30,7 +30,6 @@ jobs:
     - name: Test with pytest
       run: |
         pip install pytest
-        mkdir report
         pytest --html=../report/index.html
     - name: Upload report
       env:
@@ -38,6 +37,7 @@ jobs:
       run: |
         git checkout gh-pages
         git config --global user.name "The Tester"
+        rm -r report || true
         mv ../report .
         git add report/
         git commit -m "Add report"
