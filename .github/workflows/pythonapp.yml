@@ -38,7 +38,7 @@ jobs:
       run: |
         git checkout gh-pages
         git config --global user.name "The Tester"
-        mv ../report report
+        mv ../report .
         git add report/
         git commit -m "Add report"
         pat=$(printenv GH_PAT)
