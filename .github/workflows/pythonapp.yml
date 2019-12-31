@@ -40,5 +40,5 @@ jobs:
         git commit -m "Add report"
     - uses: ad-m/github-push-action@master
       with:
-        github_token: ${{ secrets.GITHUB_PAT }}
+        github_token: ${{ secrets.GH_PAT }}
         branch: "gh-pages"
