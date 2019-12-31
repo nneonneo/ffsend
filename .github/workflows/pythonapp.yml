@@ -33,12 +33,11 @@ jobs:
         mkdir report
         pytest --html=report/index.html
     - name: Upload report
-      env:
-        GITHUB_PAT: ${{ secrets.GITHUB_PAT }}
       run: |
         git checkout gh-pages
         git config --global user.name "The Tester"
         git add report/
         git commit -m "Add report"
-        pat=$(printenv GITHUB_PAT)
-        git push https://${pat}@github.com/KTibow/ffsend.git
+    - uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_PAT }}
