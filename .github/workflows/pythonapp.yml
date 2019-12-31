@@ -2,8 +2,8 @@ name: Run pytest
 
 on:
   push:
-    branches:
-      - master
+    branches-ignore: 
+      - gh-pages
 
 jobs:
   build:
