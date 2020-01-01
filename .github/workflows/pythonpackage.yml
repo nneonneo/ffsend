@@ -49,6 +49,7 @@ jobs:
         git pull
         git push https://${key}@github.com/${{github.repository}}.git
         if [ $? != 0 ];
+        then
         git pull
         git push https://${key}@github.com/${{github.repository}}.git
         fi
