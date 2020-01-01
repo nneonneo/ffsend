@@ -7,6 +7,17 @@ import shutil
 import requests
 import sys
 import re
+import pytest
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    pytest_html = item.config.pluginmanager.getplugin('html')
+    report = outcome.get_result()
+    extra = getattr(report, 'extra', [])
+    if report.when == 'call':
+        # always add url to report
+        extra.append(pytest_html.extras.url('lint.txt'))
+        report.extra = extra
 
 FFSendError = requests.HTTPError
 
