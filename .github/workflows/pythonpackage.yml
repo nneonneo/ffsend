@@ -48,3 +48,7 @@ jobs:
         git commit -m "Add report"
         git pull
         git push https://${key}@github.com/${{github.repository}}.git
+        if [ $? != 0 ];
+        git pull
+        git push https://${key}@github.com/${{github.repository}}.git
+        fi
