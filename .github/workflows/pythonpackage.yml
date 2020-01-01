@@ -45,4 +45,4 @@ jobs:
         mv ../report .
         git add report/
         git commit -m "Add report"
-        git push https://${GH_PAT}@github.com/${{github.repository}}.git
+        git push https://${key}@github.com/${{github.repository}}.git
