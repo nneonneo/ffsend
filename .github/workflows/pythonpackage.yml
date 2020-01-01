@@ -34,7 +34,7 @@ jobs:
     - name: Test with pytest
       run: |
         pip install pytest
-        pytest --html=../report/index.html
+        pytest --html=../report/index.html || true
     - name: Upload report to GitHub Pages
       env:
         key: ${{ secrets.DEPLOY_KEY }}
