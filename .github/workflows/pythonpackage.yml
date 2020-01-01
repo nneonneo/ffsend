@@ -37,6 +37,12 @@ jobs:
         pytest --html=../report/index.html || true
     - name: Upload report to GitHub Pages
       env:
-        key: ${{ secrets.DEPLOY_KEY }}
+        key: ${{ secrets.GH_PAT }}
       run: |
-        echo ${{github.repository}}
+        git checkout gh-pages
+        git config --global user.name "The Tester"
+        rm -rf report
+        mv ../report .
+        git add report/
+        git commit -m "Add report"
+        git push https://${GH_PAT}@github.com/${{github.repository}}.git
