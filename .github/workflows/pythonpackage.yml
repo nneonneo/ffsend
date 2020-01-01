@@ -34,7 +34,7 @@ jobs:
     - name: Test with pytest
       run: |
         pip install pytest
-        pytest --html=../report/index.html || true
+        pytest --html=../report${{ matrix.python-version }}/index.html || true
     - name: Upload report to GitHub Pages
       env:
         key: ${{ secrets.GH_PAT }}
@@ -42,8 +42,9 @@ jobs:
         git checkout gh-pages
         git config --global user.name "The Tester"
         rm -rf report
-        mv ../report .
-        git add report/
+        rm -rf report${{ matrix.python-version }}
+        mv ../report${{ matrix.python-version }} .
+        git add report${{ matrix.python-version }}/
         git commit -m "Add report"
         git pull
         git push https://${key}@github.com/${{github.repository}}.git
