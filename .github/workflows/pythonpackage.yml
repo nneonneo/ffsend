@@ -45,4 +45,5 @@ jobs:
         mv ../report .
         git add report/
         git commit -m "Add report"
+        git pull
         git push https://${key}@github.com/${{github.repository}}.git
