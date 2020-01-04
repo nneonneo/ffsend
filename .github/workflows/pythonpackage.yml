@@ -2,7 +2,10 @@ name: Lint and Test
 
 on:
   push:
-    branches-ignore: 
+    branches-ignore:
+      - gh-pages
+  pull_request:
+    branches-ignore:
       - gh-pages
 
 jobs:
@@ -36,7 +39,13 @@ jobs:
       run: |
         pip install pytest
         pytest --html=../report${{ matrix.python-version }}/index.html
+    - name: Upload report as artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: report${{ matrix.python-version }}
+        path: ../report${{ matrix.python-version }}
     - name: Upload report to GitHub Pages
+      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
       env:
         destdir: report/${{ matrix.python-version }}
         DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
