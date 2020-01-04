@@ -1,0 +1,35 @@
+./ffsend.py:19:1: F401 'io.BytesIO' imported but unused
+./ffsend.py:32:1: E266 too many leading '#' for block comment
+./ffsend.py:36:1: E302 expected 2 blank lines, found 1
+./ffsend.py:42:1: E266 too many leading '#' for block comment
+./ffsend.py:43:1: E302 expected 2 blank lines, found 1
+./ffsend.py:54:1: E302 expected 2 blank lines, found 1
+./ffsend.py:61:1: E302 expected 2 blank lines, found 1
+./ffsend.py:65:1: E302 expected 2 blank lines, found 1
+./ffsend.py:78:1: E302 expected 2 blank lines, found 1
+./ffsend.py:112:1: E302 expected 2 blank lines, found 1
+./ffsend.py:154:1: E266 too many leading '#' for block comment
+./ffsend.py:155:1: E302 expected 2 blank lines, found 1
+./ffsend.py:185:5: E266 too many leading '#' for block comment
+./ffsend.py:251:5: E266 too many leading '#' for block comment
+./ffsend.py:296:1: E266 too many leading '#' for block comment
+./ffsend.py:297:1: E302 expected 2 blank lines, found 1
+./ffsend.py:409:1: E302 expected 2 blank lines, found 1
+./ffsend.py:413:1: E266 too many leading '#' for block comment
+./ffsend.py:414:1: E302 expected 2 blank lines, found 1
+./ffsend.py:427:1: E302 expected 2 blank lines, found 1
+./ffsend.py:461:1: E302 expected 2 blank lines, found 1
+./ffsend.py:479:1: E302 expected 2 blank lines, found 1
+./ffsend.py:482:1: E302 expected 2 blank lines, found 1
+./ffsend.py:485:1: E302 expected 2 blank lines, found 1
+./ffsend.py:488:1: E302 expected 2 blank lines, found 1
+./ffsend.py:491:1: E302 expected 2 blank lines, found 1
+./ffsend.py:523:1: E302 expected 2 blank lines, found 1
+./ffsend.py:548:1: E302 expected 2 blank lines, found 1
+./ffsend.py:548:1: C901 'main' is too complex (18)
+./test_ffsend.py:14:1: E302 expected 2 blank lines, found 1
+1     C901 'main' is too complex (18)
+7     E266 too many leading '#' for block comment
+21    E302 expected 2 blank lines, found 1
+1     F401 'io.BytesIO' imported but unused
+30
