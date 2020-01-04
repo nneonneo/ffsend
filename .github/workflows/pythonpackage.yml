@@ -51,7 +51,6 @@ jobs:
         git add ${destdir}
         git commit -m "Add report for Python ${{ matrix.python-version }}"
         git pull
-        # start ssh-agent and load our deployment key into it
         eval "$(ssh-agent -s)"
         ssh-add - <<< "${DEPLOY_KEY}"
-        git push
+        git push git@github.com:${{github.repository}}.git
