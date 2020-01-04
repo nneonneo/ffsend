@@ -8,6 +8,7 @@ import requests
 import sys
 import re
 
+
 FFSendError = requests.HTTPError
 
 class TestFFSend(unittest.TestCase):
