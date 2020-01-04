@@ -16,7 +16,6 @@ import json
 import re
 import hmac
 import struct
-from io import BytesIO
 
 from clint.textui.progress import Bar as ProgressBar
 # AES.MODE_GCM requires PyCryptodome
