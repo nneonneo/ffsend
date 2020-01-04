@@ -12,7 +12,7 @@ jobs:
     strategy:
       max-parallel: 1
       matrix:
-        python-version: [2.7, 3.5, 3.6, 3.7]
+        python-version: [2.7, 3.6, 3.7]
 
     steps:
     - uses: actions/checkout@v1
@@ -30,22 +30,28 @@ jobs:
         # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        mkdir ../report${{ matrix.python-version }}
+        mkdir -p ../report${{ matrix.python-version }}
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics > ../report${{ matrix.python-version }}/lint.txt
     - name: Test with pytest
       run: |
         pip install pytest
-        pytest --html=../report${{ matrix.python-version }}/index.html || true
+        pytest --html=../report${{ matrix.python-version }}/index.html
     - name: Upload report to GitHub Pages
       env:
-        key: ${{ secrets.GH_PAT }}
+        destdir: report/${{ matrix.python-version }}
+        DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+        GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=no"
       run: |
         git checkout gh-pages
         git config --global user.name "The Tester"
-        rm -rf report
-        rm -rf report${{ matrix.python-version }}
-        mv ../report${{ matrix.python-version }} .
-        git add report${{ matrix.python-version }}/
-        git commit -m "Add report"
+        git config --global user.email "${{github.repository}}@example.com"
+        rm -rf ${destdir}
+        mkdir -p report
+        mv ../report${{ matrix.python-version }} ${destdir}
+        git add ${destdir}
+        git commit -m "Add report for Python ${{ matrix.python-version }}"
         git pull
-        git push https://${key}@github.com/${{github.repository}}.git
+        # start ssh-agent and load our deployment key into it
+        eval "$(ssh-agent -s)"
+        ssh-add - <<< "${DEPLOY_KEY}"
+        git push
