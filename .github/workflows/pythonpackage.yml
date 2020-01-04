@@ -1,4 +1,4 @@
-name: Run pytest and flake8 lint
+name: Lint and Test
 
 on:
   push:
