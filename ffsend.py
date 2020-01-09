@@ -16,6 +16,7 @@ import json
 import re
 import hmac
 import struct
+import sys
 
 from clint.textui.progress import Bar as ProgressBar
 # AES.MODE_GCM requires PyCryptodome
@@ -617,7 +618,9 @@ def main(argv):
         # Assume they tried to upload a nonexistent file
         raise OSError("File %s does not exist" % args.target)
 
+def cli():
+    main(sys.argv[1:])
+
 
 if __name__ == '__main__':
-    import sys
     exit(main(sys.argv[1:]))
