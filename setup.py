@@ -5,7 +5,7 @@ DISTRIBUTION_NAME = "ffsend"
 VERSION = "0.1.0"
 DESCRIPTION = "A Firefox Send client."
 STANDALONE_MODULES = ["ffsend"]
-CONSOLE_SCRIPTS = ["ffsend = ffsend:cli"]
+CONSOLE_SCRIPTS = ["ffsend = ffsend:main"]
 INSTALL_REQUIRES = ["clint", "pycryptodome", "requests"]
 
 setuptools.setup(

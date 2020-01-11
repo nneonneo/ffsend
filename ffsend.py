@@ -545,7 +545,9 @@ def parse_args(argv):
 
     return parser.parse_args(argv), parser
 
-def main(argv):
+def main(argv=None):
+    if argv is None:
+        argv = sys.argv[1:]
     args, parser = parse_args(argv)
 
     def do_set_params():
@@ -618,9 +620,6 @@ def main(argv):
         # Assume they tried to upload a nonexistent file
         raise OSError("File %s does not exist" % args.target)
 
-def cli():
-    main(sys.argv[1:])
-
 
 if __name__ == '__main__':
-    exit(main(sys.argv[1:]))
+    exit(main())
