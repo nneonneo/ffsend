@@ -1,12 +1,12 @@
-./setup.py:15:11: E251 unexpected spaces around keyword / parameter equals
-./setup.py:15:13: E251 unexpected spaces around keyword / parameter equals
-./setup.py:16:17: E251 unexpected spaces around keyword / parameter equals
-./setup.py:16:19: E251 unexpected spaces around keyword / parameter equals
-./setup.py:17:8: E251 unexpected spaces around keyword / parameter equals
-./setup.py:17:10: E251 unexpected spaces around keyword / parameter equals
-./setup.py:18:12: E251 unexpected spaces around keyword / parameter equals
-./setup.py:18:14: E251 unexpected spaces around keyword / parameter equals
-./setup.py:19:16: E251 unexpected spaces around keyword / parameter equals
-./setup.py:19:18: E251 unexpected spaces around keyword / parameter equals
+./setup.py:14:11: E251 unexpected spaces around keyword / parameter equals
+./setup.py:14:13: E251 unexpected spaces around keyword / parameter equals
+./setup.py:15:17: E251 unexpected spaces around keyword / parameter equals
+./setup.py:15:19: E251 unexpected spaces around keyword / parameter equals
+./setup.py:16:8: E251 unexpected spaces around keyword / parameter equals
+./setup.py:16:10: E251 unexpected spaces around keyword / parameter equals
+./setup.py:17:12: E251 unexpected spaces around keyword / parameter equals
+./setup.py:17:14: E251 unexpected spaces around keyword / parameter equals
+./setup.py:18:16: E251 unexpected spaces around keyword / parameter equals
+./setup.py:18:18: E251 unexpected spaces around keyword / parameter equals
 10    E251 unexpected spaces around keyword / parameter equals
 10
