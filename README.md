@@ -5,7 +5,7 @@ Python client to https://send.firefox.com. Encrypts and decrypts on the fly to r
 
 ## Using
 
-Prerequisites:
+Install it:
 
 ```bash
 pip install ffsend
