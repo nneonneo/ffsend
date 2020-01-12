@@ -29,6 +29,8 @@ except ImportError:
 import requests
 
 
+DEFAULT_SERVICE = 'https://send.firefox.com/'
+
 ### General utilities
 def url_b64encode(s):
     return base64.urlsafe_b64encode(s).decode().rstrip('=')
@@ -528,8 +530,8 @@ def parse_args(argv):
     group = parser.add_argument_group('Common options')
     group.add_argument('target', help="URL to download or file to upload")
     group.add_argument('-p', '--password', help="Password to use")
-    group.add_argument('-s', '--service', help="Send Service to use, default to https://send.firefox.com/",
-                       default="https://send.firefox.com/")
+    group.add_argument('-s', '--service', help="Send Service to use, default to " + DEFAULT_SERVICE,
+                       default=DEFAULT_SERVICE)
     group.add_argument('-o', '--output', help="Output directory or file; only relevant for download")
 
     group = parser.add_argument_group('General actions')

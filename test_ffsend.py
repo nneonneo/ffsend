@@ -11,7 +11,8 @@ import re
 
 FFSendError = requests.HTTPError
 
-class TestFFSend(unittest.TestCase):
+
+class TestFFSendCLI(unittest.TestCase):
 
     def setUp(self):
         self.tmpdir = tempfile.mkdtemp()
@@ -19,7 +20,7 @@ class TestFFSend(unittest.TestCase):
         self.password = ''.join(random.choice('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
                                 for _ in range(random.randint(1, 16)))
         self.origdir = os.getcwd()
-        self.service = os.environ['SERVICE'] if ('SERVICE' in os.environ) else 'https://send.firefox.com/'
+        self.service = os.environ.get('SERVICE', ffsend.DEFAULT_SERVICE)
         if re.match(r'.*/$', self.service) is None:
             self.service += '/'
         os.chdir(self.tmpdir)
