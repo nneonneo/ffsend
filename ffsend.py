@@ -41,6 +41,13 @@ def url_b64decode(s):
     s += '==='[(len(s) + 3) % 4:]
     return base64.urlsafe_b64decode(s)
 
+def sizeof_fmt(num, suffix='B'):
+    for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
+        if abs(num) < 1024.0:
+            return "%3.1f%s%s" % (num, unit, suffix)
+        num /= 1024.0
+    return "%.1f%s%s" % (num, 'Yi', suffix)
+
 ### Cryptography
 def hkdf(length, ikm, hashfunc=sha256, salt=b"", info=b""):
     prk = hmac.new(salt, ikm, hashfunc).digest()
@@ -583,14 +590,13 @@ def main(argv=None):
         if args.delete:
             parser.error("--info and --delete are mutually exclusive")
         metadata = get_metadata(service, fid, secret, args.password, args.target)
-        print("Service %s:" % service)
-        print("File ID %s:" % fid)
-        print(metadata)
+        print("Service: %s" % service)
+        print("File ID: %s" % fid)
         print("  Filename:", metadata['metadata']['name'])
         print("  MIME type:", metadata['metadata']['type'])
         if 'manifest' in metadata['metadata']:
             print("  Manifest:", metadata['metadata']['manifest'])
-        print("  Size:", metadata['metadata']['size'])
+        print("  Size:", sizeof_fmt(metadata['metadata']['size']))
         print("  Final download:", "yes" if metadata['finalDownload'] else "no")
         ttl = metadata['ttl']
         h, ttl = divmod(ttl, 3600000)
