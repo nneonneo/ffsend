@@ -8,5 +8,13 @@
 ./setup.py:17:14: E251 unexpected spaces around keyword / parameter equals
 ./setup.py:18:16: E251 unexpected spaces around keyword / parameter equals
 ./setup.py:18:18: E251 unexpected spaces around keyword / parameter equals
+./ffsend.py:45:20: E231 missing whitespace after ','
+./ffsend.py:45:25: E231 missing whitespace after ','
+./ffsend.py:45:30: E231 missing whitespace after ','
+./ffsend.py:45:35: E231 missing whitespace after ','
+./ffsend.py:45:40: E231 missing whitespace after ','
+./ffsend.py:45:45: E231 missing whitespace after ','
+./ffsend.py:45:50: E231 missing whitespace after ','
+7     E231 missing whitespace after ','
 10    E251 unexpected spaces around keyword / parameter equals
-10
+17
