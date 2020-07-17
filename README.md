@@ -1,4 +1,6 @@
-Python client to https://send.firefox.com. Encrypts and decrypts on the fly to reduce memory usage.
+Python client to https://send.firefox.com. Encrypts and decrypts on the fly to reduce memory usage.  
+  
+Note: Firefox's Send is currently offline due to some malicious activity, and can cause an error like `404 Client Error`.  
 
 [![Lint and Test Status](https://github.com/nneonneo/ffsend/workflows/Lint%20and%20Test/badge.svg)](https://nneonneo.github.io/ffsend/report/)
 [![View on PyPI](https://badge.fury.io/py/ffsend.svg)](https://pypi.org/project/ffsend/)
